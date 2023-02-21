@@ -6,6 +6,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.EtchedBorder;
@@ -13,16 +15,26 @@ import java.awt.Color;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import net.proteanit.sql.DbUtils;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class BookShop extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField bname;
-	private JTextField bedition;
-	private JTextField bprice;
+	private JTextField txtbname;
+	private JTextField txtbedition;
+	private JTextField txtbprice;
 	private JTextField txtsearch;
 	private JTable table;
 
@@ -46,9 +58,52 @@ public class BookShop extends JFrame {
 	 * Create the frame.
 	 */
 	
+	Connection con;
+	PreparedStatement pst;
+	ResultSet rs;
+	
+	public void  connect()
+	{
+		try 
+		{
+
+			Class.forName("com.mysql.jdbc.Driver");
+			con=DriverManager.getConnection("jdbc:mysql://localhost/bookshop","root","");
+			
+			System.out.println("success");
+
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e);
+			
+		}
+	}
+	
+	
+	
+	public void LoadTable()
+	{
+		try 
+		{
+			
+			pst=(PreparedStatement) con.prepareStatement("select * from books");
+
+			rs=pst.executeQuery();
+			table.setModel(DbUtils.resultSetToTableModel(rs));
+
+		} 
+			catch (Exception e) 
+				{
+					// TODO: handle exception
+					System.out.println(e);
+				}
+	}
 	public BookShop()
 	{
+		connect();
 		init();
+		LoadTable();
 	}
 	
 	public void init() {
@@ -86,24 +141,52 @@ public class BookShop extends JFrame {
 		Price.setBounds(25, 150, 118, 31);
 		panel.add(Price);
 		
-		bname = new JTextField();
-		bname.setBounds(180, 33, 151, 31);
-		panel.add(bname);
-		bname.setColumns(10);
+		txtbname = new JTextField();
+		txtbname.setBounds(180, 33, 151, 31);
+		panel.add(txtbname);
+		txtbname.setColumns(10);
 		
-		bedition = new JTextField();
-		bedition.setBounds(180, 97, 151, 31);
-		panel.add(bedition);
-		bedition.setColumns(10);
+		txtbedition = new JTextField();
+		txtbedition.setBounds(180, 97, 151, 31);
+		panel.add(txtbedition);
+		txtbedition.setColumns(10);
 		
-		bprice = new JTextField();
-		bprice.setBounds(180, 151, 151, 31);
-		panel.add(bprice);
-		bprice.setColumns(10);
+		txtbprice = new JTextField();
+		txtbprice.setBounds(180, 151, 151, 31);
+		panel.add(txtbprice);
+		txtbprice.setColumns(10);
 		
 		JButton btnsave = new JButton("SAVE");
 		btnsave.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent e) 
+			{
+				String name,edition,price;
+				
+				name=txtbname.getText();
+				edition=txtbedition.getText();
+				price=txtbprice.getText();
+				
+				
+				try
+				{
+					pst=(PreparedStatement) con.prepareStatement("insert into books(name,edition,price) values (?,?,?)");
+					pst.setString(1,name);
+					pst.setString(2, edition);
+					pst.setString(3, price);
+					
+					pst.executeUpdate();
+					JOptionPane.showMessageDialog(null,"Record addded");
+					LoadTable();
+					
+					txtbname.setText("");
+					txtbedition.setText("");
+					txtbprice.setText("");
+				} 
+					catch (Exception e2) 
+					{
+						// TODO: handle exception
+						System.out.println(e2);
+					}
 			}
 		});
 		btnsave.setBounds(29, 346, 85, 33);
@@ -114,6 +197,14 @@ public class BookShop extends JFrame {
 		contentPane.add(btnexit);
 		
 		JButton btnclear = new JButton("CLEAR");
+		btnclear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) 
+			{
+				txtbname.setText("");
+				txtbedition.setText("");
+				txtbprice.setText("");
+			}
+		});
 		btnclear.setBounds(309, 346, 85, 33);
 		contentPane.add(btnclear);
 		
@@ -129,6 +220,44 @@ public class BookShop extends JFrame {
 		panel_1.add(bid);
 		
 		txtsearch = new JTextField();
+		txtsearch.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) 
+			{
+				
+				try 
+				{
+					String id=txtsearch.getText();
+					pst=(PreparedStatement) con.prepareStatement("select * from books");
+					pst.setString(1, id);
+					rs=pst.executeQuery();
+					
+					if(rs.next()==true)
+					{
+						String name,edition,price;
+						name=rs.getString(2);
+						edition=rs.getString(3);
+						price=rs.getString(4);
+						
+						txtbname.setText(name);
+						txtbedition.setText(edition);
+						txtbprice.setText(price);
+					}
+					else
+					{
+						txtbname.setText("");
+						txtbedition.setText("");
+						txtbprice.setText("");
+					}
+					
+		
+				}
+					catch (Exception e2) 
+						{
+							// TODO: handle exception
+						}
+			}
+		});
 		txtsearch.setColumns(10);
 		txtsearch.setBounds(160, 44, 151, 31);
 		panel_1.add(txtsearch);
@@ -146,9 +275,53 @@ public class BookShop extends JFrame {
 		panel_2.add(scrollPane_1);
 		
 		table = new JTable();
+		table.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+				"ID", "Name", "Edition", "Price"
+			}
+		));
 		scrollPane_1.setViewportView(table);
 		
 		JButton btnupdate = new JButton("UPDATE");
+		btnupdate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) 
+			{
+				
+				String name,edition,price,id;
+				
+				name=txtbname.getText();
+				edition=txtbedition.getText();
+				price=txtbprice.getText();
+				id=txtsearch.getText();
+				
+				try 
+				{
+					
+					pst=(PreparedStatement)  con.prepareStatement("update books (name,edition,price) values(?,?,?) where id=? " );
+					
+					pst.setString(1, name);
+					pst.setString(2, edition);
+					pst.setString(3, price);
+					pst.setString(4, id);
+					
+					pst.executeUpdate();
+					
+					LoadTable();
+					
+					
+					
+					
+				}
+					catch (SQLException e1) 
+						{
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+				
+			}
+		});
 		btnupdate.setBounds(569, 458, 85, 33);
 		contentPane.add(btnupdate);
 		
