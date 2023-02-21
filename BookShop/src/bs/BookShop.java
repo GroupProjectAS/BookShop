@@ -57,7 +57,7 @@ public class BookShop extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	
+	//database connection
 	Connection con;
 	PreparedStatement pst;
 	ResultSet rs;
@@ -70,7 +70,7 @@ public class BookShop extends JFrame {
 			Class.forName("com.mysql.jdbc.Driver");
 			con=DriverManager.getConnection("jdbc:mysql://localhost/bookshop","root","");
 			
-			System.out.println("success");
+			//System.out.println("success");
 
 
 		} catch (Exception e) {
@@ -81,7 +81,7 @@ public class BookShop extends JFrame {
 	}
 	
 	
-	
+	// function for load table
 	public void LoadTable()
 	{
 		try 
@@ -99,6 +99,8 @@ public class BookShop extends JFrame {
 					System.out.println(e);
 				}
 	}
+	
+	//constructor
 	public BookShop()
 	{
 		connect();
@@ -106,22 +108,25 @@ public class BookShop extends JFrame {
 		LoadTable();
 	}
 	
-	public void init() {
+	public void init()
+	{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1045, 585);
 		contentPane = new JPanel();
+		contentPane.setBackground(new Color(245, 222, 179));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
 		JLabel BookShop = new JLabel("Book Shop");
-		BookShop.setFont(new Font("Times New Roman", Font.PLAIN, 16));
-		BookShop.setBounds(415, 20, 234, 33);
+		BookShop.setFont(new Font("Times New Roman", Font.BOLD, 24));
+		BookShop.setBounds(401, 24, 324, 33);
 		contentPane.add(BookShop);
 		
 		JPanel panel = new JPanel();
-		panel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Registration", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel.setBackground(new Color(244, 164, 96));
+		panel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Registration", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 255)));
 		panel.setBounds(29, 79, 365, 217);
 		contentPane.add(panel);
 		panel.setLayout(null);
@@ -157,7 +162,12 @@ public class BookShop extends JFrame {
 		txtbprice.setColumns(10);
 		
 		JButton btnsave = new JButton("SAVE");
+		btnsave.setBackground(new Color(224, 255, 255));
+		btnsave.setFont(new Font("Times New Roman", Font.BOLD, 14));
 		btnsave.addActionListener(new ActionListener() {
+			
+			//insert record in database 
+			
 			public void actionPerformed(ActionEvent e) 
 			{
 				String name,edition,price;
@@ -175,12 +185,14 @@ public class BookShop extends JFrame {
 					pst.setString(3, price);
 					
 					pst.executeUpdate();
-					JOptionPane.showMessageDialog(null,"Record addded");
+					JOptionPane.showMessageDialog(null,"Book record addded");
 					LoadTable();
 					
 					txtbname.setText("");
 					txtbedition.setText("");
 					txtbprice.setText("");
+					
+					txtbname.requestFocus();
 				} 
 					catch (Exception e2) 
 					{
@@ -193,23 +205,40 @@ public class BookShop extends JFrame {
 		contentPane.add(btnsave);
 		
 		JButton btnexit = new JButton("EXIT");
+		btnexit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) 
+			{
+			// exit button
+				System.exit(0);
+			}
+		});
+		btnexit.setBackground(new Color(224, 255, 255));
+		btnexit.setFont(new Font("Times New Roman", Font.BOLD, 14));
 		btnexit.setBounds(174, 346, 85, 33);
 		contentPane.add(btnexit);
 		
 		JButton btnclear = new JButton("CLEAR");
+		btnclear.setBackground(new Color(224, 255, 255));
+		btnclear.setFont(new Font("Times New Roman", Font.BOLD, 14));
 		btnclear.addActionListener(new ActionListener() {
+			
+			// clear all text field 
 			public void actionPerformed(ActionEvent e) 
 			{
 				txtbname.setText("");
 				txtbedition.setText("");
 				txtbprice.setText("");
+			
+				txtbname.requestFocus();
+
 			}
 		});
 		btnclear.setBounds(309, 346, 85, 33);
 		contentPane.add(btnclear);
 		
 		JPanel panel_1 = new JPanel();
-		panel_1.setBorder(new TitledBorder(null, "Search", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel_1.setBackground(new Color(244, 164, 96));
+		panel_1.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Search", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 205)));
 		panel_1.setBounds(29, 405, 365, 111);
 		contentPane.add(panel_1);
 		panel_1.setLayout(null);
@@ -222,13 +251,15 @@ public class BookShop extends JFrame {
 		txtsearch = new JTextField();
 		txtsearch.addKeyListener(new KeyAdapter() {
 			@Override
+			
+			// searching record by id and display in respective text field
 			public void keyReleased(KeyEvent e) 
 			{
 				
 				try 
 				{
 					String id=txtsearch.getText();
-					pst=(PreparedStatement) con.prepareStatement("select * from books");
+					pst=(PreparedStatement) con.prepareStatement("select * from books where id=?");
 					pst.setString(1, id);
 					rs=pst.executeQuery();
 					
@@ -245,9 +276,12 @@ public class BookShop extends JFrame {
 					}
 					else
 					{
+						
 						txtbname.setText("");
 						txtbedition.setText("");
 						txtbprice.setText("");
+						JOptionPane.showMessageDialog(null, "Invalid ID");
+						txtsearch.setText("");
 					}
 					
 		
@@ -255,6 +289,7 @@ public class BookShop extends JFrame {
 					catch (Exception e2) 
 						{
 							// TODO: handle exception
+							System.out.println(e2);
 						}
 			}
 		});
@@ -271,7 +306,7 @@ public class BookShop extends JFrame {
 		panel_2.setLayout(null);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(0, 0, 530, 304);
+		scrollPane_1.setBounds(0, 0, 530, 314);
 		panel_2.add(scrollPane_1);
 		
 		table = new JTable();
@@ -285,7 +320,11 @@ public class BookShop extends JFrame {
 		scrollPane_1.setViewportView(table);
 		
 		JButton btnupdate = new JButton("UPDATE");
+		btnupdate.setBackground(new Color(224, 255, 255));
+		btnupdate.setFont(new Font("Times New Roman", Font.BOLD, 14));
 		btnupdate.addActionListener(new ActionListener() {
+			
+			// update book record
 			public void actionPerformed(ActionEvent e) 
 			{
 				
@@ -299,7 +338,7 @@ public class BookShop extends JFrame {
 				try 
 				{
 					
-					pst=(PreparedStatement)  con.prepareStatement("update books (name,edition,price) values(?,?,?) where id=? " );
+					pst=(PreparedStatement)  con.prepareStatement("update books set name=?,edition=?,price=? where id=? " );
 					
 					pst.setString(1, name);
 					pst.setString(2, edition);
@@ -307,11 +346,13 @@ public class BookShop extends JFrame {
 					pst.setString(4, id);
 					
 					pst.executeUpdate();
+					JOptionPane.showMessageDialog(null,"Record Updated..");
 					
 					LoadTable();
 					
 					
-					
+					txtbname.requestFocus();
+
 					
 				}
 					catch (SQLException e1) 
@@ -322,11 +363,46 @@ public class BookShop extends JFrame {
 				
 			}
 		});
-		btnupdate.setBounds(569, 458, 85, 33);
+		btnupdate.setBounds(569, 458, 109, 33);
 		contentPane.add(btnupdate);
 		
 		JButton btndelete = new JButton("DELETE");
-		btndelete.setBounds(714, 458, 85, 33);
+		btndelete.setBackground(new Color(224, 255, 255));
+		btndelete.setFont(new Font("Times New Roman", Font.BOLD, 14));
+		btndelete.addActionListener(new ActionListener() {
+			
+			// delete book record
+
+			public void actionPerformed(ActionEvent e) 
+			{
+				String id=txtsearch.getText();
+				
+				try 
+				{
+					pst=(PreparedStatement) con.prepareStatement("delete from books where id=?");
+					pst.setString(1, id);
+					
+					pst.executeUpdate();
+					
+					JOptionPane.showMessageDialog(null,"Book record deleted");
+					
+					LoadTable();
+					
+					txtbname.setText("");
+					txtbedition.setText("");
+					txtbprice.setText("");
+					txtsearch.setText("");
+					
+					txtbname.requestFocus();
+				} 
+					catch (Exception e2)
+						{
+							// TODO: handle exception
+							System.out.println(e2);
+						}
+			}
+		});
+		btndelete.setBounds(760, 459, 109, 33);
 		contentPane.add(btndelete);
 	}
 }
